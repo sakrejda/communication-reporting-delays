@@ -69,8 +69,8 @@
 \newlength{\onecolwid}
 \newlength{\twocolwid}
 \newlength{\threecolwid}
-\setlength{\paperwidth}{46.8in} % A0 width: 46.8in
-\setlength{\paperheight}{33.1in} % A0 height: 33.1in
+\setlength{\paperwidth}{67.2in} % A0 width: 46.8in
+\setlength{\paperheight}{42.0in} % A0 height: 33.1in
 \setlength{\sepwid}{0.012\paperwidth} % Separation width (white space) between columns
 \setlength{\onecolwid}{0.3\paperwidth} % Width of one column
 %\setlength{\onecolwid}{0.235\paperwidth} % Width of one column
@@ -122,18 +122,29 @@
 
 \begin{columns}[t] % The whole poster consists of three major columns, the second of which is split into two columns twice - the [t] option aligns each column's content to the top
 
-\begin{column}{.7\onecolwid} % The first column
+\begin{column}{.1\onecolwid}
+\end{column}
+
+\begin{column}{.5\onecolwid} % The first column
 
 \begin{block}{General Motivation}
-Student's t-distribution is often used in probabilistic models to model data contaminated with outliers.  For data restricted to be positive there is no obvious similarly applicable option.  While the generalized Gamma is sometimes applied, it does not perform well in the presence of moderate outliers (5-10 x scale).  Our goal was to develop a density that could represent the main mass of such a density as well as its tail regardless of the presence of outliers.
+Student's t-distribution is often used in probabilistic models to model data contaminated with outliers.  For data restricted to be positive there is no obvious similarly applicable option.  While the generalized Gamma is sometimes applied, it does not perform well in the presence of moderate outliers (5-10 times scale).  Our goal was to develop a density that could represent the main mass of such a density as well as its tail regardless of the presence of outliers.  We considered using mixture formulations but they are more applicable to systems with multiple types of data rather than a single data generating process \emph{sometimes} contaminated by a second process.
 \end{block}
 
 \begin{block}{Specific Motivation}
-Infectious disease incidence forecasting is a current area of interest for public health agencies[1], including our collaborators at the Ministry of Public Health in Thailand.  For forecasting infectious disease cases must be counted, and to be counted they must be reported.  Reporting can be an error-prone and slow process[2,3].  
+Infectious disease incidence forecasting is a current area of interest for public health agencies[1], including our collaborators at the Ministry of Public Health in Thailand.  Thailand has a robust infectious disease surveillance system and a record of dengue cases stretching back to 1968.  The data set is continuously updated and informs current disease control efforts.  It provides and excellent data set for developing forecasting techniques for infectious disease.  
 
-\vspace{.2in}
+\vspace{0.2in}
 
-We constructed a model of case reporting delays for Thailand at a fine spatial scale as part of a broader disease incidence forecasting project.   This data is often contaminated with extra delays resulting from mis-diagnosis, laboratory delays, data entry errors, and similar processes (Figure 1).
+For forecasting infectious disease cases must be counted, and to be counted they must be reported.  Reporting can be an error-prone and slow process[2,3].  While electronic systems can improve the reporting process they are not a panacea and some delays will inevitably persist, particularly in the context of emerging diseases and struggling health care systems.
+
+\end{block}
+
+\begin{block}{Project scope}
+
+We constructed a model of case reporting delays for Thailand at a fine spatial scale as part of a broader disease incidence forecasting project.  This data is often contaminated with extra delays resulting from mis-diagnosis, laboratory delays, data entry errors, and similar processes (Figure 1).
+
+Current available methods require the analyst to discretize delays and choose a cut-off value to deal with the long tail (Figure 1) in reporting delay data. Additionally they are not easily extended to a large-scale hierarchical application like the Thai reporting system.  We developed a density which can be readily used with contaminated data and implemented our model using the Stan (mc-stan.org) programming language and algorithm library.
 
 \vspace{0.2in}
 
@@ -144,7 +155,7 @@ We constructed a model of case reporting delays for Thailand at a fine spatial s
  \caption{\small Histogram of delays from a single Thai province in 2015.  The main mass of the distribution is well defined but note the significant number of outliers.}
 \end{figure}
 
-These delays can reduce situational awareness when public health professionals work to respond to disease outbreaks by hiding the current scale of the outbreak as well as whether it is expanding or shrinking (Figure 2 and 3).
+These delays can reduce situational awareness when public health professionals work to respond to disease outbreaks by hiding the current scale of an outbreak as well as hiding whether it is growing or shrinking (Figure 2 and 3).
 
 \vspace{0.2in}
 
@@ -156,18 +167,46 @@ These delays can reduce situational awareness when public health professionals w
 \end{figure}
 
 \end{block}
+\end{column}
+
+\begin{column}{0.05\onecolwid}
+\end{column}
+
+\begin{column}{0.7\onecolwid}
+
+\begin{block}{Reporting Delay Data}
+
+The Thai Ministry of Public Health (MoPH) provides us with geocoded records of individual dengue infections and the date of illness onset.  Thailand contains 76 provinces and one special region (Bangkok) leading to 77 administrative units.  These are further divided into 928 districts and $\sim8,000$ sub-districts.  The present model looks at reporting delays at the district level (Figure 3).  Due to these delays our first forecasting efforts discarded the most recent 12 weeks of data.
+
+\vspace{0.2in}
+
+The incidence of dengue varies over the course of the dengue season, and the intensity of the dengue season varies year-to-year.  We have complete data for the period 2014-2016 which gives us some idea of typical delay data for this system.  Incidence also varies spatially so some regions are more data rich whereas certain districts (white in Figure 3) may not have any data for a given year.  Since spatial patterns of dengue incidence can change and emerging diseases could follow different patterns it is still important to produce the best possible estimates for data-poor regions.
+
+\end{block}
+
+\vspace{0.5in}
+
+\begin{figure}
+ \begin{center}
+    \includegraphics[width=1.0\textwidth]{thailand-ecdf-map}
+ \end{center}
+ \caption{\small District-level map of Thailand with numbered provinces.  The expanded inset is for the densly populated Bangkok metropolitan region.  The proportion of the 9/11/2015 peak (Figure 1) reported 1 month later by district is indicated by the color scale.  White districts had no cases in 2015.}
+\end{figure}
+
 
 
 \end{column}
 
-\begin{column}{1.0\onecolwid} 
 
+
+\begin{column}{0.05\onecolwid}
+\end{column}
+
+
+\begin{column}{0.5\onecolwid} 
 
 \begin{block}{Contaminated data density}
-
-\begin{columns}
-\begin{column}{0.5\onecolwid}
-We begin with a standard Gamma delay model for $U$, and an Exponential model for $V$, and construct two new variables:
+We begin with a standard Gamma delay model for random variable $U$, and an Exponential model for $V$.  We then construct two new variables:
 
 \begin{align*}
 U &\sim \text{Gamma}(\alpha, \beta) \\
@@ -185,18 +224,13 @@ We start from the joint density $p_{X,Y}(x,y)$ and integrate over $Y$ to arrive 
 p_X(x|\alpha, \beta, \delta)  = \frac{\delta^{\alpha-1}}{(\delta-\beta)^\alpha} \left(e^{-\frac{x}{\delta}}\right) \frac{\gamma\left(\alpha, \left(\frac{1}{\beta}-\frac{1}{\delta}\right)x\right)}{\Gamma(\alpha)}
 \end{equation*}
 
-
-\end{column}
-
-\begin{column}{0.5\onecolwid}
-
-And a matching cumulative density function we use to implement truncation:
+We also derive a matching cumulative density function and use it to implement truncation and censoring.
 
 \begin{equation*}
 F_X(w|\alpha, \beta, \delta) = \frac{\gamma\left(\alpha, \frac{w}{\beta}\right)}{\Gamma(\alpha)} - \frac{\delta^\alpha e^{\frac{-w}{\delta}}}{(\delta-\beta)^\alpha} \frac{\gamma\left(\alpha,\left(\frac{1}{\beta}-\frac{1}{\delta}\right)w\right)}{\Gamma(\alpha)}
 \end{equation*}
 
-The density is only defined if $\delta > \beta$, but delta is the scale for the exponential heavy tail whereas beta is the scale for the main mass of the density so it's a reasonable restriction.
+The density is only defined if $\delta > \beta$, but delta is the scale for the exponential heavy tail whereas beta is the scale for the main mass of the density so it is a reasonable restriction.
 
 \vspace{0.2in}
 
@@ -206,29 +240,16 @@ Ultimately observed delays can be drawn from either $X$ or $U$ so we always appl
 p_T(t_d|\alpha, \beta, \delta, \pi) = (1-\pi) p_U(t_d|\alpha, \beta) + (\pi) p_X(t_d|\alpha, \beta, \delta)
 \end{equation*}
 
-\end{column}
-\end{columns}
 \end{block}
-
-\begin{columns}
-
-\begin{column}{0.5\onecolwid}
-\begin{figure}
- \begin{center}
-    \includegraphics[width=1.0\textwidth]{thailand-ecdf-map}
- \end{center}
- \caption{\small The proportion of the 9/11 peak reported 1 month later by district is indicated by the color scale.  White districts had no cases in 2015.}
-\end{figure}
-\end{column}
 
 \begin{column}{0.5\onecolwid}
 
 \begin{block}{Hierarchical Model}
-For the reporting delay data in Thailand we specify a hierarchical model for districts within provinces for the $\alpha$, $\beta$, and $q$ parameters.  There is less information available for the $\delta$ parameter so we only fit a province-level hierarchical model for $\delta$. 
+For the reporting delay data in Thailand we specify a hierarchical model for districts within provinces for the $\alpha$, $\beta$, and $\pi$ parameters.  There is less information available for the $\delta$ parameter so we only fit a province-level hierarchical model for $\delta$. 
 
 \vspace{0.2in}
 
-Each parameter is constructed through a scaled logit transform and the following model. We show the hierarchical model, for $\alpha$ only, below.  The scaling parameters are: $\kappa_\alpha=30$ $\kappa_\sigma=20$, and $\kappa_\delta=200$).
+Each parameter is constructed through a scaled logit transform and the following model. We show the hierarchical model, for $\alpha$ only, below.  The scaling parameters are: $\kappa_\alpha=30$ $\kappa_\sigma=20$, and $\kappa_\delta=200$).  
 
 \begin{align*}
 \text{logit}\left(\frac{\alpha_i}{\kappa_\alpha}\right) &= \alpha_{k[i]}   & \\
@@ -236,7 +257,7 @@ Each parameter is constructed through a scaled logit transform and the following
 \alpha_j &\sim N(\alpha_0, \sigma_{\alpha_\text{\tiny J}})                  & \text{province}\\
 \end{align*}
 
-Upon fitting the model we can construct an inverse CDF for any given region and produce estimates and credible intervals for the expected delay.  Currently we make predictions based on a separate simple model for counts of cases observed in district $k$ during an interval $[t_a,t_b)$ at time $t^*$ and the count of cases observed at some time $t >> t^*$.
+Upon fitting the model we can construct an inverse CDF for any given region per each sample from the posterior to create samples from these functions.  We summarize the transformed parameters to produce estimates and credible intervals for the expected delay.  Currently we make predictions based on a separate simple model for counts, $x$, of cases observed in district $k$ during an interval $[t_a,t_b)$ at time $t^*$ and the count of cases observed at some time $t >> t^*$.
 
 \begin{align*}
 x_{k,[t_a,t_b)}(t^*) \sim \text{Bin}(x_{k, [t_a,t_b)}(t),p_{k, [t_a,t_b)}(t^*)) \\
@@ -244,62 +265,72 @@ x_{k,[t_a,t_b)}(t) \sim \text{NB}(x_{k,[t_a,t_b)}(t^*),p_{k,[t_a,t_b)}(t^*))
 \end{align*}
 
 
+\vspace{0.2in}
+
+These predicted case counts take the place of partially reported data in our forecasting procedure[1] and allow us to use more recent data for forecasting.  Rather than discarding 12 weeks of partially reported data we can discard only the most recent 2.  Because forecasting infectious disease is a hard problem, gains from understanding the reporting process are critical to improving effective forecast horizons.
+
 \end{block}
 \end{column}
 
 
-\end{columns}
-
-
-
-%\begin{block}{Advantages}
-
-%\begin{itemize}
-%\item A separate parameter to describe the inflation of the (truncated) tail.  
-%\item A single mixing parameter to describe the proportion of data outside of the main mass of the distribution
-%\item Shape and scale parameters for the Gamma component \emph{shared} between both parts of the mixture.
-%\item For simulated data drawn from a Gamma density and contaminated with the addition of very large outliers we can demonstrate improved fit for a variety of shape/scale parameters and varying amounts of contamination.
-%\item Standard methods often impose censoring to deal with this issue, which requires choosing a threshold.  In our work on Thailand we have $>8,000$ administrative units with potentially different thresholds so fitting a single model is critical.
-%\end{itemize}
-
-%\end{block}
-
 \end{column} % End of the fourth column
 
-\begin{column}{1.3\onecolwid} 
-
-\begin{columns}
+\begin{column}{0.05\onecolwid}
+\end{column}
 
 \begin{column}{0.7\onecolwid} 
+
+
+\begin{block}{Fitting and Results}
+We used Stan (mc-stan.org) for programming the model as well as sampling from the posterior using an auto-tuned HMC alogrithm (NUTS).  We fit this hierarchical model to dengue reporting delay data from 2014-2016 in Thailand and produce country-wide district-level estimates of the CDF and inverse CDF functions (e.g.-Figure 4).  Empirical CDF functions almost always fall within 95\% credible intervals for the estimated functions (e.g.-Figures 5 and 6) and we are working on quantifying goodness of fit.
+
+\vspace{0.2in}
+
+Visual examination of district-level plots reveals the hierarchical model was effective at shrinking estimates from data-sparse districts towards their province means without producing artifacts.  The contaminated data density appears to accurately represent densities for data with marginal (1-5\%) and large (10-30\%) contamination without requiring any manual adjustments.  This was a great benefit as this version of the model covered 928 districts, and the next deeper level of data (sub-districts) includes $\sim8,000$ units making any manual adjustments prohibitive.
+\end{block}
+
+
+\vspace{0.5in}
 
 \begin{figure}
  \begin{center}
     \includegraphics[width=1.0\textwidth]{thailand-model-delays}
  \end{center}
- \caption{\small The model-reconstructed time (days) it takes to report 80\% of cases by district is indicated by the color scale.}
+ \caption{\small District-level map of Thailand with numbered provinces.  The model-based time (days) it takes to report 80\% of cases by district is indicated by the color scale.  These estimates were derived by summarizing samples of the district-specific estimated inverse CDF.}
 \end{figure}
 
 \end{column}
 
-\begin{column}{0.6\onecolwid} 
 
-\begin{block}{Fitting and Results}
-We Stan (mc-stan.org) for programming the model as well as sampling from the posterior using an auto-tuned HMC alogrithm (NUTS).  We fit this hierarchical model to dengue reporting delay data from 2014-2016 in Thailand and produce district-level country-wide estimates of CDF and inverse CDF functions (e.g.-Figure 4).  Empirical CDF functions almost always fall within 95\% credible intervals for the estimated functions (e.g.-Figure 5) and we are working on quantifying goodness of fit.
-
-\vspace{0.2in}
-
-Visual examination of district-level plots reveals the hierarchical model was effective at shrinking estimates from data-sparse districts towards their province means.  The contaminated data density appears to accurately represent densities for data with marginal (1-5\%) and large (10-30\%) contamination without requiring any manual adjustments.  This was a great benefit as this version of the model covered 928 districts, and the next deeper level of data (sub-districts) includes $\sim$8,000 units making any manual adjustments prohibitive.
-\end{block}
-
-\begin{block}{Evaluation}
-To evaluate the impact of this model we used it in our dengue forecasting efforts[1] to estimate true current case counts based on partially reported case counts.  \emph{We then applied the forecasting model based on the estimated true case counts and realized a $\sim$1-2 month improvement in the effective forecast horizon.} We also used a simulation study to evaluated the contaminated data density versus the generalized Gamma and Gamma densities for a variety of contaminated non-contaminated data types.  As expected our density performs well in both contexts whereas the generalized Gamma fails to fit the main mass of the density in the presence of outliers.
-
-\end{block}
-
-
+\begin{column}{0.05\onecolwid}
 \end{column}
 
-\end{columns}
+\begin{column}{0.6\onecolwid} 
+
+
+\begin{block}{Evaluation}
+To evaluate the impact of this model, we used it in our dengue forecasting efforts[1] to estimate true current case counts based on partially reported case counts.  \emph{We then applied the forecasting model based on the estimated true case counts and realized a $\sim$1-2 month improvement in the effective forecast horizon.} We also used a simulation study to evaluate the contaminated data density versus the generalized Gamma and Gamma densities for a variety of contaminated non-contaminated data types.  As expected our density performs well in both contexts whereas the generalized Gamma fails to fit the main mass of the density in the presence of outliers.
+
+\end{block}
+
+
+\begin{figure}
+ \begin{center}
+    \includegraphics[width=.8\textwidth]{district-plot-126}
+ \end{center}
+ \caption{\small Typical match between empirical and model-based CDF for a single data-rich district.  Some districts saw few cases and are more difficult to evaluate.}
+\end{figure}
+
+
+\vspace{0.5in}
+
+\begin{figure}
+ \begin{center}
+    \includegraphics[width=.8\textwidth]{district-plot-884}
+ \end{center}
+ \caption{\small Match between empirical and model-based CDF for a single data-poor district.  These districts can only be evaluated across years or in aggregate.}
+\end{figure}
+
 
 %\begin{block}{Simulated Data Example}
 %\begin{figure}
@@ -310,19 +341,7 @@ To evaluate the impact of this model we used it in our dengue forecasting effort
 %\end{figure}
 %\end{block}
 
-\begin{columns}
-\begin{column}{0.7\onecolwid}
 
-\begin{figure}
- \begin{center}
-    \includegraphics[width=.8\textwidth]{district-plot-126}
- \end{center}
- \caption{\small Typical match between empirical and model-based CDF for a single district.  Some districts saw few cases and are more difficult to evaluate.}
-\end{figure}
-
-\end{column}
-
-\begin{column}{0.6\onecolwid}
 
 \begin{block}{Ongoing Work}
 This evaluation makes us confident in our ability to represent reporting delays in real-world data.  We are working to create a joint model for both reporting delays and the time-series component to realize further gains in forecasting accuracy.
@@ -333,16 +352,15 @@ This evaluation makes us confident in our ability to represent reporting delays 
 
 \vspace{.2in}
 
-\tiny [1] N.G. Reich et al. (2016) Challenges in Real-Time Prediction of Infectious Disease: A Case Study of Dengue in Thailand. PLoS Negl Trop Disease. 10(6):e0004761  \tiny [2] P. Effler et al. (1999) Statewide System of Electronic Notifiable Disease Reporting From Clinical Laboratories: Comparing Automated Reporting With Conventional Methods. JAMA. 282(19):1845-1850  \tiny [3] D. Revere et al. (2017) Notifiable condition reporting practices: implications for public health agency participation in a health information exchange. BMC Public Health. 17:247
 
-\vspace{.2in}
+\tiny [1] N.G. Reich et al. (2016) Challenges in Real-Time Prediction of Infectious Disease: A Case Study of Dengue in Thailand. PLoS Negl Trop Disease. 10(6):e0004761  
 
+\tiny [2] P. Effler et al. (1999) Statewide System of Electronic Notifiable Disease Reporting From Clinical Laboratories: Comparing Automated Reporting With Conventional Methods. JAMA. 282(19):1845-1850  
+
+\tiny [3] D. Revere et al. (2017) Notifiable condition reporting practices: implications for public health agency participation in a health information exchange. BMC Public Health. 17:247
 
 \end{column}
 
-\end{columns}
-
-\end{column} 
 
 \end{columns} % End of all the columns in the poster
 
